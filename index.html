@@ -1,0 +1,913 @@
+﻿<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="stylesheet" href="css/qqss.css" type="text/css" />
+
+<title>QUIEN QUIERE SER MILLONARIO</title>
+
+</head>
+
+<body>
+<audio id="audio" controls>
+	<source type="audio/wav" src="audio.wav">
+</audio>
+<div class="game-history" style="font-size: 11px; background-color: #EFEFEF; padding: 0 5px; display: none"></div>
+
+<!-- <div id="session" style="clear: both; color: #FFF; border: 1px solid red; width: 300px;"></div> -->
+
+<div class="game-wrapper">
+
+<div id="logs" style=" display: none; margin: 3px; padding: 5px; width: auto; border: 2px solid green; color: #FFF"></div>
+
+    <div id="game">
+    
+        <div id="header">
+            <div class="logo"></div><!-- /.logo -->
+            
+            <div class="comodines">                            
+                <ul>
+                    <li id="comd_cincuenta"><a href="#"></a></li>    
+                    <li id="comd_publico"><a href="#"></a></li>    
+                </ul>
+                
+            </div><!-- /.comodines -->
+            
+        </div><!-- /#header -->
+        
+        <div class="playground">
+        
+            <p id="question">
+            <span id="formulacion">Pregunta 1. </span>
+            </p><!-- /.question -->
+            
+            <ul id="answers">
+        
+                <li>
+                	<a id="cajaA" href="#" onclick="marcar('a')">
+                    	<span class="bullet">A:</span> 
+                    	<span id="a" class="answer-text"></span>
+                	</a>
+                    
+              	</li>
+                
+                <li>
+                    <a id="cajaB" href="#" onclick="marcar('b')">
+                    <span class="bullet">B:</span> 
+                    <span id="b" class="answer-text"></span>
+                    </a>
+              	</li>
+                
+                <li>
+                    <a id="cajaC" href="#" onclick="marcar('c')">
+                    <span class="bullet">C:</span> 
+                    <span id="c" class="answer-text"></span>
+                    </a>
+              	</li>
+                
+                <li>
+                    <a id="cajaD" href="#" onclick="marcar('d')">
+                    <span class="bullet">D:</span> 
+                    <span id="d" class="answer-text"></span>
+                    </a>
+              	</li>          
+            </ul><!-- /.answers -->
+            	<div>
+           			<button id="validar" class="comprobar">Comprobar</button>
+           			<button id="siguienteP" class="comprobar">Siguiente</button>
+           			<button id="finalizar" class="comprobar">Finalizar</button>
+           		</div>   
+           	       
+        
+        </div><!-- /#playground -->
+                
+    </div><!-- /#game -->
+    
+    <div id="aside">
+        <ul>
+            <li id="ref10"><em>Pregunta 10</em></li>
+            <li id="ref9">Pregunta 9</li>
+            <li id="ref8">Pregunta 8</li>
+            <li id="ref7">Pregunta 7</li>
+            <li id="ref6">Pregunta 6</li>
+            <li id="ref5"><em>Pregunta 5</em></li>
+            <li id="ref4">Pregunta 4</li>            
+            <li id="ref3">Pregunta 3</li>
+            <li id="ref2">Pregunta 2</li>
+            <li id="ref1">Pregunta 1</li>
+            <li id="acumulado" class="up">0.0</li>
+        </ul>
+        
+        
+        
+    </div><!-- /#aside -->
+    
+    <a href="#" id="reset"></a>
+
+</div><!-- /.game-wrapper -->
+
+<div id="dialog_gana" style="text-align: center;" class="window">
+	<div class="logojave" style="margin: 5px auto; float: none;"></div><!-- /.logo -->
+    <p><strong><h1>Muy Bien</h1>
+    <br> Hemos Contestado todas las preguntas <br>
+    <p style="color: #a7d129">Correctas: <b id="totalAcumulado"></b></p><br>
+    <p style="color: #ff2400">Incorrectas: <b id="totalIncorrectas"></b></p>
+    <br>Gracias por su participación</strong><p>
+</div><!-- /#dialog_retirarse -->
+
+
+<div id="dialog_start" style="text-align: center;" class="window">
+	<div class="logojave" style="margin: 5px auto; float: none;"></div><!-- /.logo -->
+    <p><strong>Laura Camila Puentes Buitrago <br />Pontificia Universidad Javeriana <br />Psicología</strong><br>Año 2018</p>
+    <button id="iniciar" class="start-game">EMPEZAR JUEGO</button>
+</div><!-- /#dialog_retirarse -->
+
+
+
+<!-- Mask to cover the whole screen -->
+<div id="mask"></div>
+
+
+<!-- Mask to cover the whole screen -->
+<div id="mask"></div>
+<script type="text/javascript" language="JavaScript" src="js/jquery-1.4.4.min.js"></script>
+<script type="text/javascript" language="JavaScript" src="js/pubsub.js"></script>
+<script type="text/javascript" language="JavaScript" src="js/json2.js"></script>
+<script type="text/javascript" language="JavaScript" src="js/jquery.store.js"></script>
+<script type="text/javascript" language="JavaScript" src="js/qqss.js"></script>
+
+<script>
+
+
+var pregunta = 1;
+var acumulado=0;
+var optionA= false;
+var optionB= false;
+var optionC= false;
+var optionD= false;
+document.getElementById("iniciar").onclick = function(){ pregunta1();}
+document.getElementById("validar").onclick = function(){ validacion();}
+document.getElementById("siguienteP").onclick = function(){ preguntas(pregunta+1);}
+document.getElementById("finalizar").onclick = function(){ mostrarGano();}
+
+
+function mostrarGano(){	
+	reproducir('sounds/winner.mp3');
+    var x = document.getElementById('dialog_gana');
+    document.getElementById('totalAcumulado').innerHTML= acumulado;
+    document.getElementById('totalIncorrectas').innerHTML= 10- acumulado;
+    if (x.style.display === 'none') {
+        x.style.display = 'block';
+    } else {
+        x.style.display = 'none';
+        x.style.marginLeft = '255px';
+        x.style.marginTop = '150px';
+        x.style.position = 'absolute';r
+    }
+
+}
+function totalAcumulado(){
+	return acumulado;
+}
+function reproducir(ruta){
+	audio.pause();
+	audio = new Audio(ruta);
+	audio.play();
+}
+
+function ocultarValidar(){
+	document.getElementById('validar').style.display = 'none';
+}
+function ocultarSiguiente(){
+	document.getElementById('siguienteP').style.display = 'none';
+}
+function ocultarFinalizar(){
+	document.getElementById('finalizar').style.display = 'none';
+}
+function restaurarT(){
+	document.getElementById("formulacion").style.fontSize = "x-large";
+	document.getElementById("a").style.fontSize = "x-large";
+	document.getElementById("b").style.fontSize = "x-large";
+	document.getElementById("c").style.fontSize = "x-large";
+	document.getElementById("d").style.fontSize = "x-large";
+}
+
+function preguntas(numero){
+	switch(numero){
+		case 2:
+			document.getElementById("ref2").style.backgroundColor= "#ffff";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta2();
+			desmarcar('todas');
+		break;
+		case 3:
+			document.getElementById("ref3").style.backgroundColor= "#ffff";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta3();
+			desmarcar('todas');
+		break;
+		case 4:
+			document.getElementById("ref4").style.backgroundColor= "#ffff";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta4();
+			desmarcar('todas');
+		break;
+		case 5:
+			document.getElementById("ref5").style.backgroundColor= "#4a9ff5";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta5();
+			desmarcar('todas');
+		break;
+		case 6:
+			document.getElementById("ref6").style.backgroundColor= "#ffff";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta6();
+			desmarcar('todas');
+		break;
+		case 7:
+			document.getElementById("ref7").style.backgroundColor= "#ffff";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta7();
+			desmarcar('todas');
+		break;
+		case 8:
+			document.getElementById("ref8").style.backgroundColor= "#ffff";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta8();
+			desmarcar('todas');
+		break;
+		case 9:
+			document.getElementById("ref9").style.backgroundColor= "#ffff";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta9();
+			desmarcar('todas');
+		break;
+		case 10:
+			document.getElementById("ref10").style.backgroundColor= "#4a9ff5";
+			document.getElementById("acumulado").innerHTML= acumulado;
+			pregunta10();
+			desmarcar('todas');
+		break;
+	}
+}
+
+function pregunta1(){	
+	var audio;
+	ocultarValidar();
+	ocultarSiguiente();	
+	ocultarFinalizar();
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "1. ¿ En qué niveles  de  la educación rural se evidencia  mayor deserción y  baja permanencia de los estudiantes? ";
+	document.getElementById("a").innerHTML= "Preescolar.";
+	document.getElementById("b").innerHTML= "Básica primaria.";
+	document.getElementById("c").innerHTML= "Básica secundaria y media.";
+	document.getElementById("d").innerHTML= "Párvulos.";
+}
+function pregunta2(){
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "Los principales problemas de la educación rural son:";
+	document.getElementById("formulacion").style.fontSize = "xx-large";
+	document.getElementById("a").innerHTML= "Bajos niveles educativos de las familias.";
+	document.getElementById("b").innerHTML= "Condiciones de pobreza y desplazamiento.";
+	document.getElementById("c").innerHTML= "Falta de recursos materiales.";
+	document.getElementById("d").innerHTML= "Todas las anteriores.";
+}
+
+function pregunta3(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "¿Cuál es el principal problema demográfico de la población rural?";
+	document.getElementById("formulacion").style.fontSize = "x-large";
+	document.getElementById("a").innerHTML= "Alta morbilidad en jóvenes,";	
+	document.getElementById("a").style.fontSize = "large";
+	document.getElementById("b").innerHTML= "Los jovenes estan migrando a las grandes ciudades.";
+	document.getElementById("b").style.fontSize = "large";
+	document.getElementById("c").innerHTML= "Aumento de embarazos adolescentes.";
+	document.getElementById("c").style.fontSize = "large";
+	document.getElementById("d").innerHTML= "Falta de apoyo de los padres.";
+	document.getElementById("d").style.fontSize = "large";
+}
+function pregunta4(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "¿Cuáles son los dos modelos utilizados en la educación rural?";
+	document.getElementById("formulacion").style.fontSize = "x-large";
+	document.getElementById("a").innerHTML= "Escuela nueva y postprimaria.";
+	document.getElementById("a").style.fontSize = "large";
+	document.getElementById("b").innerHTML= "Aceleración del aprendizaje y  Sistema de aprendizaje tutorial.";
+	document.getElementById("b").style.fontSize = "large";
+	document.getElementById("c").innerHTML= "Telesecundaria y programa de educación continua.";
+	document.getElementById("c").style.fontSize = "large";
+	document.getElementById("d").innerHTML= "Ninguna de las anteriores.";
+	document.getElementById("d").style.fontSize = "large";
+}
+function pregunta5(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "¿Qué promueve la escuela nueva? ";
+	document.getElementById("formulacion").style.fontSize = "xx-large";
+	document.getElementById("a").innerHTML= "Menos profesores mediocres.";
+	document.getElementById("a").style.fontSize = "large";
+	document.getElementById("b").innerHTML= "Aprendizaje rápido.";
+	document.getElementById("b").style.fontSize = "large";
+	document.getElementById("c").innerHTML= "Aprendizaje activo.";
+	document.getElementById("c").style.fontSize = "large";
+	document.getElementById("d").innerHTML= "Aumento de sueldos a directores de instituciones.";
+	document.getElementById("d").style.fontSize = "large";
+}
+function pregunta6(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "¿En qué fecha se inicia el Proyecto de Educación Rural (PER)?";
+	document.getElementById("formulacion").style.fontSize = "x-large";
+	document.getElementById("a").innerHTML= "1985";
+	document.getElementById("b").innerHTML= "1996";
+	document.getElementById("c").innerHTML= "1943";
+	document.getElementById("d").innerHTML= "1990";
+}
+function pregunta7(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "Los programas educativos alrededor del mundo se clasifican en dos categorías:";
+	document.getElementById("formulacion").style.fontSize = "x-large";
+	document.getElementById("a").innerHTML= "Programas de subsidios a la demanda y oferta.";
+	document.getElementById("a").style.fontSize = "large";
+	document.getElementById("b").innerHTML= "Programas de apoyo psicológico y  programas de inclusión.";
+	document.getElementById("b").style.fontSize = "large";
+	document.getElementById("c").innerHTML= "A y B son correctas.";
+	document.getElementById("c").style.fontSize = "large";
+	document.getElementById("d").innerHTML= "Ninguna de las anteriores.";
+	document.getElementById("d").style.fontSize = "large";
+}
+function pregunta8(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "Dos de los Objetivos principales del PER son:";
+	document.getElementById("formulacion").style.fontSize = "x-large";
+	document.getElementById("a").innerHTML= "Aumentar la cobertura. ";
+	document.getElementById("a").style.fontSize = "large";
+	document.getElementById("b").innerHTML= "Mejorar la calidad educativa.";
+	document.getElementById("b").style.fontSize = "large";
+	document.getElementById("c").innerHTML= "Diseñar mecanismos para entender la situación de la educación.";
+	document.getElementById("c").style.fontSize = "medium";
+	document.getElementById("d").innerHTML= "Todas las anteriores.";
+	document.getElementById("d").style.fontSize = "large";
+}
+function pregunta9(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "Uno de los resultados del PER es:";
+	document.getElementById("formulacion").style.fontSize = "x-large";
+	document.getElementById("a").innerHTML= "Los estudiantes deben estudiar más tiempo en las instituciones.";
+	document.getElementById("a").style.fontSize = "medium";
+	document.getElementById("b").innerHTML= "Programas de subsidios a la oferta como alternativa política viable y exitosa,";
+	document.getElementById("b").style.fontSize = "medium";
+	document.getElementById("b").style.marginTop= "-7PX";
+	document.getElementById("c").innerHTML= "Evaluación de estudiantes que se reciben en la institución.";
+	document.getElementById("c").style.fontSize = "medium";
+	document.getElementById("d").innerHTML= "tener en cuenta el estrato socioeconómico.";
+	document.getElementById("d").style.fontSize = "medium";
+}
+function pregunta10(){
+	restaurarT();
+	ocultarValidar();
+	ocultarSiguiente();
+	pregunta+=1;		
+	reproducir('sounds/intro_lets_play.mp3');
+	document.getElementById("formulacion").innerHTML= "El PER logró:";
+	document.getElementById("formulacion").style.fontSize = "xx-large";
+	document.getElementById("a").innerHTML= "Aumentar las tasas de aprobación.";
+	document.getElementById("a").style.fontSize = "medium";
+	document.getElementById("b").innerHTML= "Disminuir las tasas de deserción y reprobación de las escuelas tratadas.";
+	document.getElementById("b").style.fontSize = "medium";
+	document.getElementById("b").style.marginTop= "0PX"
+	document.getElementById("c").innerHTML= "Crear más escuelas.";
+	document.getElementById("c").style.fontSize = "medium";
+	document.getElementById("d").innerHTML= "A y B son correctas.";
+	document.getElementById("d").style.fontSize = "medium";
+}
+
+
+function validacion(){	
+	switch(pregunta){
+		case 1:		
+			document.getElementById("ref1").style.color= "#ffff";	
+			switch(true){
+				case optionA:
+					marcar('c');
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref1").style.backgroundColor= "#ff2400";
+					optionA=false;					
+				break;
+				case optionB:
+					marcar('c');
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaB").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref1").style.backgroundColor= "#ff2400";
+					optionB=false;
+				break;
+				case optionC:
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					document.getElementById("ref1").style.backgroundColor= "#a7d129";
+					optionC=false;
+					acumulado +=1;
+				break;
+				case optionD:
+					marcar('c');
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref1").style.backgroundColor= "#ff2400";
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;
+		case 2:
+			document.getElementById("ref2").style.color= "#ffff";
+			switch(true){
+				case optionA:
+					marcar('d');
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref2").style.backgroundColor= "#ff2400";
+					optionA=false;
+				break;
+				case optionB:
+					marcar('d');
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaB").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref2").style.backgroundColor= "#ff2400";
+					optionB=false;
+				break;
+				case optionC:
+				 	marcar('d');
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref2").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:					
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					document.getElementById("ref2").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					acumulado +=1;
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;
+		case 3:		
+			document.getElementById("ref3").style.color= "#ffff";	
+			switch(true){
+				case optionA:
+					marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";					
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref3").style.backgroundColor= "#ff2400";					
+					optionA=false;
+				break;
+				case optionB:					
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					document.getElementById("ref3").style.backgroundColor= "#a7d129";
+					acumulado +=1;
+					optionB=false;
+				break;
+				case optionC:
+				 	marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref3").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:
+					marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref3").style.backgroundColor= "#ff2400";
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;
+		case 4:
+			document.getElementById("ref4").style.color= "#ffff";
+			switch(true){
+				case optionA:					
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');					
+					document.getElementById("ref4").style.backgroundColor= "#a7d129";
+					acumulado +=1;
+					optionA=false;
+				break;
+				case optionB:
+					marcar('a');
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaB").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref4").style.backgroundColor= "#ff2400";
+					optionB=false;
+				break;
+				case optionC:
+				 	marcar('a');
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref4").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:	
+					marcar('a');	
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";			
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref4").style.backgroundColor= "#ff2400";
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;
+		case 5:		
+			switch(true){
+				case optionA:
+					marcar('c');
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref5").style.backgroundColor= "#ff2400";
+					optionA=false;
+				break;
+				case optionB:
+					marcar('c');
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaB").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref5").style.backgroundColor= "#ff2400";
+					optionB=false;
+				break;
+				case optionC:
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					document.getElementById("ref5").style.backgroundColor= "#a7d129";
+					acumulado +=1;
+					optionC=false;
+				break;
+				case optionD:
+					marcar('c');
+					document.getElementById("cajaC").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref5").style.backgroundColor= "#ff2400";
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;
+		case 6:	
+			document.getElementById("ref6").style.color= "#ffff";	
+			switch(true){
+				case optionA:
+					marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					optionA=false;
+				break;
+				case optionB:
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("ref6").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					acumulado +=1;
+					optionB=false;
+				break;
+				case optionC:
+				 	marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref6").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:
+					marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref6").style.backgroundColor= "#ff2400";
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;
+		case 7:		
+			document.getElementById("ref7").style.color= "#ffff";
+			switch(true){
+				case optionA:
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					document.getElementById("ref7").style.backgroundColor= "#a7d129";
+					acumulado +=1;
+					optionA=false;
+				break;
+				case optionB:
+					marcar('a');
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaB").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref7").style.backgroundColor= "#ff2400";
+					optionB=false;
+				break;
+				case optionC:
+				 	marcar('a');
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref7").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:
+					marcar('a');
+					document.getElementById("cajaA").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref7").style.backgroundColor= "#ff2400";
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;	
+		case 8:		
+			document.getElementById("ref8").style.color= "#ffff";
+			switch(true){
+				case optionA:
+					marcar('d');
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref8").style.backgroundColor= "#ff2400";
+					optionA=false;
+				break;
+				case optionB:
+					marcar('d');
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaB").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref8").style.backgroundColor= "#ff2400";
+					optionB=false;
+				break;
+				case optionC:
+ 					marcar('d');
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref8").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:
+					document.getElementById("cajaD").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					document.getElementById("ref8").style.backgroundColor= "#a7d129";
+					acumulado+=1;
+					optionD=false;
+				break;
+			}			
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;
+		case 9:	
+			document.getElementById("ref9").style.color= "#ffff";	
+			switch(true){
+				case optionA:
+					marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref9").style.backgroundColor= "#ff2400";
+					optionA=false;
+				break;
+				case optionB:
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("ref9").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					acumulado +=1;
+					optionB=false;
+				break;
+				case optionC:
+				 	marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref9").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:
+					marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref9").style.backgroundColor= "#ff2400";
+					optionD=false;
+				break;
+			}
+			ocultarValidar();
+			document.getElementById('siguienteP').style.display = 'block';
+		break;	
+		case 10:
+			switch(true){
+				case optionA:
+					marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaA").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref10").style.backgroundColor= "#ff2400";
+					optionA=false;
+				break;
+				case optionB:
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					reproducir('sounds/win.mp3');
+					document.getElementById("ref10").style.backgroundColor= "#a7d129";
+					acumulado +=1;
+					document.getElementById("acumulado").innerHTML= acumulado;
+					optionB=false;
+				break;
+				case optionC:
+				 	marcar('b');
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";
+					document.getElementById("cajaC").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref10").style.backgroundColor= "#ff2400";
+					optionC=false;
+				break;
+				case optionD:	
+					marcar('b');		
+					document.getElementById("cajaB").style.backgroundColor= "#a7d129";		
+					document.getElementById("cajaD").style.backgroundColor= "#ff2400";
+					reproducir('sounds/lose.mp3');
+					document.getElementById("ref10").style.backgroundColor= "#ff2400";					
+					optionD=false;
+				break;
+			}
+			ocultarValidar();		
+			ocultarSiguiente();
+			document.getElementById('finalizar').style.display = 'block';	
+		break;	
+			
+	}	
+}
+
+function marcar(ref){
+	switch(ref){
+		case 'a':
+			optionA= true;
+			ocultarSiguiente();
+			ocultarFinalizar();
+			reproducir('sounds/lets_play.mp3');			
+			document.getElementById("cajaA").style.backgroundColor= "#f8b500";
+			document.getElementById("cajaA").style.borderRadius = "10px";
+			document.getElementById("cajaA").style.top= "-7px";
+			document.getElementById("cajaA").style.paddingRight= "277px";
+			document.getElementById("cajaA").style.paddingBottom= "24px";
+			document.getElementById("cajaA").style.marginTop= "1px";
+			document.getElementById("cajaA").style.marginLeft= "3px";
+			desmarcar('a');
+			document.getElementById('validar').style.display = 'block';
+		break;
+		case 'b':
+			optionB= true;
+			ocultarSiguiente();
+			ocultarFinalizar();
+			reproducir('sounds/lets_play.mp3');
+			document.getElementById("cajaB").style.backgroundColor= "#f8b500";
+			document.getElementById("cajaB").style.borderRadius = "10px";
+			document.getElementById("cajaB").style.top= "-7px";
+			document.getElementById("cajaB").style.paddingRight= "277px";
+			document.getElementById("cajaB").style.paddingBottom= "24px";
+			document.getElementById("cajaB").style.marginTop= "1px";
+			document.getElementById("cajaB").style.marginLeft= "3px";
+			desmarcar('b');
+			document.getElementById('validar').style.display = 'block';
+		break;
+		case 'c':
+			optionC= true;
+			ocultarSiguiente();
+			ocultarFinalizar();
+			reproducir('sounds/lets_play.mp3');
+			document.getElementById("cajaC").style.backgroundColor= "#f8b500";
+			document.getElementById("cajaC").style.borderRadius = "10px";
+			document.getElementById("cajaC").style.top= "-7px";
+			document.getElementById("cajaC").style.paddingRight= "277px";
+			document.getElementById("cajaC").style.paddingBottom= "24px";
+			document.getElementById("cajaC").style.marginTop= "1px";
+			document.getElementById("cajaC").style.marginLeft= "3px";
+			desmarcar('c');
+			document.getElementById('validar').style.display = 'block';
+		break;
+		case 'd':
+			optionD= true;
+			ocultarSiguiente();
+			ocultarFinalizar();
+			reproducir('sounds/lets_play.mp3');
+			document.getElementById("cajaD").style.backgroundColor= "#f8b500";
+			document.getElementById("cajaD").style.borderRadius = "10px";
+			document.getElementById("cajaD").style.top= "-7px";
+			document.getElementById("cajaD").style.paddingRight= "277px";
+			document.getElementById("cajaD").style.paddingBottom= "24px";
+			document.getElementById("cajaD").style.marginTop= "1px";
+			document.getElementById("cajaD").style.marginLeft= "3px";
+			desmarcar('d');
+			document.getElementById('validar').style.display = 'block';
+		break;
+
+	}
+}
+function desmarcar(ref){
+	switch(ref){
+		case 'a':
+			optionB= false;
+			document.getElementById("cajaB").style.removeProperty("background-color");
+			optionC= false;
+			document.getElementById("cajaC").style.removeProperty("background-color");
+			optionD= false;
+			document.getElementById("cajaD").style.removeProperty("background-color");
+		break;		
+		case 'b':
+			optionA= false;
+			document.getElementById("cajaA").style.removeProperty("background-color");
+			optionC= false;
+			document.getElementById("cajaC").style.removeProperty("background-color");
+			optionD= false;
+			document.getElementById("cajaD").style.removeProperty("background-color");
+		break;
+		case 'c':
+			optionA= false;
+			document.getElementById("cajaA").style.removeProperty("background-color");
+			optionB= false;
+			document.getElementById("cajaB").style.removeProperty("background-color");
+			optionD= false;
+			document.getElementById("cajaD").style.removeProperty("background-color");
+		break;
+		case 'd':
+			optionA= false;
+			document.getElementById("cajaA").style.removeProperty("background-color");
+			optionB= false;
+			document.getElementById("cajaB").style.removeProperty("background-color");
+			optionC= false;
+			document.getElementById("cajaC").style.removeProperty("background-color");
+		break;
+		case 'todas':
+			optionA= false;
+			document.getElementById("cajaA").style.removeProperty("background-color");
+			optionB= false;
+			document.getElementById("cajaB").style.removeProperty("background-color");
+			optionC= false;
+			document.getElementById("cajaC").style.removeProperty("background-color");
+			optionD= false;
+			document.getElementById("cajaD").style.removeProperty("background-color");
+		break;
+	}
+}
+</script>
+</body>
+</html>
